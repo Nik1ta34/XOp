@@ -1,0 +1,87 @@
+import pygame
+import sys
+
+
+def win(lst, simvol):  # определение победителя
+    zero = 0
+    for row in lst:
+        zero += row.count(0)
+        if row.count(simvol) == 3:
+            return simvol
+    for column in range(len(lst)):
+        if lst[0][column] == simvol and lst[1][column] == simvol and lst[2][column] == simvol:
+            return simvol
+    if (lst[0][0] == simvol and lst[1][1] == simvol and lst[2][2] == simvol) or \
+            (lst[2][0] == simvol and lst[1][1] == simvol and lst[0][2] == simvol):
+        return simvol
+    if zero == 0:
+        return 'DRAW'
+
+
+pygame.font.init()
+dis = pygame.display.set_mode((530, 530))
+pygame.display.set_caption('Крестики-Нолики')
+img = pygame.image.load('566294.png')
+pygame.display.set_icon(img)
+widht = lenght = 150
+propusk = 20
+cnt = 0
+personal_color = (255, 130, 255)
+black = (0, 0, 0)
+white = (255, 255, 255)
+pink = (200, 100, 255)
+orange = (255, 160, 0)
+lst = [[0] * 3 for i in range(3)]
+winner = False
+
+while True:
+    for event in pygame.event.get():  # создание окна
+        if event.type == pygame.QUIT:
+            quit()
+        elif event.type == pygame.MOUSEBUTTONDOWN and not winner:  # создание из клеток кнопки
+            x_mouse, y_mouse = pygame.mouse.get_pos()
+            column = x_mouse // (propusk + widht)
+            row = y_mouse // (propusk + lenght)
+            if lst[row][column] == 0:
+                if cnt % 2 == 0:
+                    lst[row][column] = 'x'
+                else:
+                    lst[row][column] = 'o'
+                cnt += 1
+        elif event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:  # replay
+            winner = False
+            cnt = 0
+            lst = [[0] * 3 for i in range(3)]
+            dis.fill(black)
+
+    for i in range(3):  # создание игрового поля
+        for j in range(3):
+            if lst[i][j] == 'x':
+                color = pink
+            elif lst[i][j] == 'o':
+                color = orange
+            else:
+                color = white
+            x = j * widht + (j + 1) * propusk
+            y = i * lenght + (i + 1) * propusk
+            pygame.draw.rect(dis, color, (x, y, widht, lenght))
+            if color == pink:  # создание крестика
+                pygame.draw.line(dis, white, (x + 10, y + 10), (x + widht - 10, y + lenght - 10), 5)
+                pygame.draw.line(dis, white, (x + widht - 10, y + 10), (x + 5, y + lenght - 10), 5)
+            elif color == orange:  # создание нолика
+                pygame.draw.circle(dis, white, (x + widht / 2, y + lenght / 2), widht / 2 - 5, 5)
+
+    if (cnt - 1) % 2 == 0:  # проверка на победителя
+        winner = win(lst, 'x')
+    else:
+        winner = win(lst, 'o')
+    if winner:  # вывод победителя
+        dis.fill(personal_color)
+        shrift = pygame.font.SysFont('arial', 150)
+        text = shrift.render(winner, True, black)
+        text_coor = text.get_rect()
+        x_text = dis.get_width() / 2 - text_coor.width / 2
+        y_text = dis.get_height() / 2 - text_coor.height / 2
+        dis.blit(text, [x_text, y_text])
+
+    pygame.display.update()
